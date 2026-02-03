@@ -15,12 +15,13 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), default='student', nullable=False)
     
     records = db.relationship('Record', backref='author', lazy='dynamic')
+    achievements = db.relationship('Achievement', backref='owner', lazy='dynamic')
 
 class Category(db.Model):
     __tablename__ = 'categories'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=True)
     
     records = db.relationship('Record', backref='category', lazy='dynamic')
@@ -38,3 +39,26 @@ class Record(db.Model):
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    
+    proofs = db.relationship('UploadedFile', backref='record', lazy=True)
+
+class UploadedFile(db.Model):
+    __tablename__ = 'uploaded_files'
+
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(255), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    record_id = db.Column(db.Integer, db.ForeignKey('records.id'))
+
+class Achievement(db.Model):
+    __tablename__ = 'achievements'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    points = db.Column(db.Integer, default=0)
+    awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
