@@ -2,33 +2,48 @@ from datetime import datetime
 from flask_login import UserMixin
 from app import db
 
+class Faculty(db.Model):
+    __tablename__ = 'faculties'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), unique=True, nullable=False)
+    short_name = db.Column(db.String(20), nullable=False)
+    users = db.relationship('User', backref='faculty_rel', lazy='dynamic')
+
+class Team(db.Model):
+    __tablename__ = 'teams'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    captain_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    records = db.relationship('Record', backref='team_rel', lazy='dynamic')
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
-
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
-    faculty = db.Column(db.String(100), nullable=True)
     group_code = db.Column(db.String(20), nullable=True)
     role = db.Column(db.String(20), default='student', nullable=False)
     
+    faculty_id = db.Column(db.Integer, db.ForeignKey('faculties.id'))
+    
     records = db.relationship('Record', backref='author', lazy='dynamic')
     achievements = db.relationship('Achievement', backref='owner', lazy='dynamic')
+    teams_captain = db.relationship('Team', backref='captain', lazy='dynamic')
 
 class Category(db.Model):
     __tablename__ = 'categories'
-
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    icon = db.Column(db.String(50), nullable=True)
     description = db.Column(db.String(255), nullable=True)
     
     records = db.relationship('Record', backref='category', lazy='dynamic')
 
 class Record(db.Model):
     __tablename__ = 'records'
-
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -37,24 +52,14 @@ class Record(db.Model):
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     
     proofs = db.relationship('UploadedFile', backref='record', lazy=True)
 
-class UploadedFile(db.Model):
-    __tablename__ = 'uploaded_files'
-
-    id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(255), nullable=False)
-    file_path = db.Column(db.String(255), nullable=False)
-    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    record_id = db.Column(db.Integer, db.ForeignKey('records.id'))
-
 class Achievement(db.Model):
     __tablename__ = 'achievements'
-
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(255), nullable=True)
@@ -62,3 +67,12 @@ class Achievement(db.Model):
     awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+class UploadedFile(db.Model):
+    __tablename__ = 'uploaded_files'
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(255), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    record_id = db.Column(db.Integer, db.ForeignKey('records.id'))
