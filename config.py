@@ -1,7 +1,7 @@
 import os
 
 class Config:
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     SECRET_KEY = 'dev-key-change-this'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'instance', 'university.db')
+    # користувач root, без пароля
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost/university_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
