@@ -2,7 +2,7 @@ import telebot
 from app import create_app, db 
 from app.models import User, Record
 
-BOT_TOKEN = '8330081327:AAFMTPC-v-WHXkW3u8g-UpN6uap7IjCwoqA'
+BOT_TOKEN = ''
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
