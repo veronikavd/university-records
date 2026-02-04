@@ -14,10 +14,8 @@ CREATE TABLE users (
     FOREIGN KEY (faculty_id) REFERENCES faculties(id) ON DELETE SET NULL
 );
 
--- 1. Адміністратор
 INSERT INTO users (`id`, `username`, `email`, `full_name`, `role`, `password_hash`, `group_code`, `faculty_id`) VALUES (1, 'admin', 'admin@pnu.edu.ua', 'Адміністратор ПНУ', 'admin', 'admin', NULL, 1);
 
--- 2-150. Студенти (з правильними англійськими поштами)
 INSERT INTO users VALUES (2, 'student1', 'yuliya.yaremchuk1@pnu.edu.ua', 'Яремчук Юлія', 'ІСТ-43', 'student', 'pass', 1);
 INSERT INTO users VALUES (3, 'student2', 'andrii.pavliuk2@pnu.edu.ua', 'Павлюк Андрій', 'ІСТ-33', 'student', 'pass', 3);
 INSERT INTO users VALUES (4, 'student3', 'yaroslav.savchuk3@pnu.edu.ua', 'Савчук Ярослав', 'БІО-13', 'student', 'pass', 7);
