@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="bi bi-gear-fill text-primary"></i> Налаштування профілю</h2>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-person-lines-fill"></i> Основна інформація
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form_info.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form_info.username.label(class="form-label") }}
+                            {{ form_info.username(class="form-control") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_info.full_name.label(class="form-label") }}
+                            {{ form_info.full_name(class="form-control") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_info.email.label(class="form-label") }}
+                            {{ form_info.email(class="form-control") }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_info.group_code.label(class="form-label") }}
+                            {{ form_info.group_code(class="form-control") }}
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            {{ form_info.submit_info(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold py-3 text-danger">
+                    <i class="bi bi-shield-lock-fill"></i> Безпека та Пароль
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form_pass.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ form_pass.current_password.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form_pass.current_password(class="form-control", id="current_pass") }}
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePass('current_pass', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            {{ form_pass.new_password.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form_pass.new_password(class="form-control", id="new_pass") }}
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePass('new_pass', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_pass.confirm_new_password.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form_pass.confirm_new_password(class="form-control", id="confirm_pass") }}
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePass('confirm_pass', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            {{ form_pass.submit_pass(class="btn btn-outline-danger") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePass(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>
+{% endblock %}

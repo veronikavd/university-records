@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    
+    <div class="col-md-4 mb-4">
+        <div class="card shadow border-0 text-center p-4">
+            <div class="card-body">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" 
+                     style="width: 120px; height: 120px; font-size: 50px;">
+                    {{ user.username[0].upper() }}
+                </div>
+                
+                <h3 class="fw-bold mb-1">{{ user.full_name }}</h3>
+                <p class="text-muted mb-3">@{{ user.username }}</p>
+                
+                <div class="badge bg-light text-dark border px-3 py-2 mb-2 fs-6">
+                    <i class="bi bi-people-fill"></i> Група: {{ user.group_code }}
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-4 text-center">
+                    <div>
+                        <div class="fw-bold fs-4">{{ total_records }}</div>
+                        <small class="text-muted">Нагород</small>
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-4">{{ user.records.count() }}</div>
+                        <small class="text-muted">Заявок</small>
+                    </div>
+                </div>
+
+                {% if current_user.is_authenticated and current_user.id == user.id %}
+                    <hr>
+                    <a href="{{ url_for('main.settings') }}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-gear"></i> Налаштування
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h3 class="mb-4 text-primary"><i class="bi bi-award-fill"></i> Досягнення та Рекорди</h3>
+
+        {% if records %}
+            {% for record in records %}
+            <div class="card shadow-sm mb-3 border-0 hover-effect">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title fw-bold text-dark mb-1">{{ record.title }}</h5>
+                            <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
+                                {{ record.category.name if record.category else 'Загальне' }}
+                            </span>
+                        </div>
+                        <small class="text-muted">{{ record.event_date.strftime('%d.%m.%Y') }}</small>
+                    </div>
+                    
+                    <p class="card-text text-secondary mt-2">{{ record.description }}</p>
+                    
+                    {% if record.image_file and record.image_file != 'default_record.jpg' %}
+                    <div class="mb-3 mt-3">
+                        <a href="{{ url_for('static', filename='proofs/' + record.image_file) }}" target="_blank">
+                            <img src="{{ url_for('static', filename='proofs/' + record.image_file) }}" 
+                                 class="img-fluid rounded border shadow-sm" 
+                                 alt="Фото доказ"
+                                 style="max-height: 300px; width: 100%; object-fit: cover;">
+                        </a>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex align-items-center bg-light p-2 rounded mt-2">
+                        <i class="bi bi-trophy text-warning fs-4 me-2"></i>
+                        <span class="fw-bold">{{ record.result_value }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info border-0 shadow-sm">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                У цього користувача поки немає підтверджених рекордів.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .hover-effect { transition: transform 0.2s; }
+    .hover-effect:hover { transform: translateY(-3px); }
+</style>
+{% endblock %}

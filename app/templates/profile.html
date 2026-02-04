@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    
+    <div class="card shadow border-0 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3 shadow-sm" 
+                         style="width: 80px; height: 80px; font-size: 35px;">
+                        {{ current_user.username[0].upper() }}
+                    </div>
+                    
+                    <div>
+                        <h2 class="fw-bold mb-0">{{ current_user.full_name }}</h2>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-person-badge"></i> Група: <strong>{{ current_user.group_code }}</strong>
+                            <span class="mx-2">•</span>
+                            <small>@{{ current_user.username }}</small>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('main.settings') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-gear-fill"></i> Налаштування
+                    </a>
+                    <a href="{{ url_for('main.add_record') }}" class="btn btn-primary btn-lg shadow-sm">
+                        <i class="bi bi-plus-lg"></i> Додати досягнення
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <h1 class="display-6 fw-bold">{{ records|length }}</h1>
+                    <p class="mb-0 opacity-75">Всього заявок</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3 text-primary"><i class="bi bi-clock-history"></i> Історія заявок</h3>
+    
+    {% if records %}
+        <div class="list-group shadow-sm">
+            {% for record in records %}
+            <div class="list-group-item list-group-item-action p-3 border-0 border-bottom">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="mb-1">
+                        <h5 class="mb-1 fw-bold text-dark">{{ record.title }}</h5>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-event"></i> {{ record.event_date.strftime('%d.%m.%Y') }} 
+                            &nbsp;|&nbsp; 
+                            <span class="badge bg-light text-dark border">{{ record.category.name if record.category else 'Без категорії' }}</span>
+                        </small>
+                    </div>
+                    
+                    <div>
+                        {% if record.status == 'approved' %}
+                            <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle"></i> Схвалено</span>
+                        {% elif record.status == 'rejected' %}
+                            <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle"></i> Відхилено</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-hourglass-split"></i> На розгляді</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <p class="mb-1 mt-2 text-secondary">{{ record.description }}</p>
+
+                {% if record.image_file and record.image_file != 'default_record.jpg' %}
+                <div class="mt-2 mb-2">
+                    <a href="{{ url_for('static', filename='proofs/' + record.image_file) }}" target="_blank" class="text-decoration-none">
+                        <img src="{{ url_for('static', filename='proofs/' + record.image_file) }}" 
+                             class="rounded border" 
+                             alt="Фото доказ"
+                             style="max-height: 150px; object-fit: cover;">
+                        <small class="d-block text-muted mt-1"><i class="bi bi-search"></i> Натисніть для збільшення</small>
+                    </a>
+                </div>
+                {% endif %}
+                <div class="mt-2 fw-bold text-primary">
+                    <i class="bi bi-trophy"></i> Результат: {{ record.result_value }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-light rounded border border-dashed">
+            <i class="bi bi-inbox fs-1 text-muted"></i>
+            <p class="mt-2 text-muted">У вас ще немає поданих заявок.</p>
+            <a href="{{ url_for('main.add_record') }}" class="btn btn-sm btn-outline-primary">Подати першу заявку</a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-collection-fill text-primary"></i> Архів Рекордів</h2>
+        <a href="{{ url_for('main.admin_add_record') }}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Додати запис
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body bg-light">
+            <form action="{{ url_for('main.admin_records') }}" method="get" class="row g-2">
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" class="form-control border-start-0" 
+                               placeholder="Пошук за прізвищем, групою або назвою події..." 
+                               value="{{ search_query }}">
+                    </div>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary">Знайти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Студент</th>
+                            <th>Подія</th>
+                            <th>Категорія</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                            <th class="text-end">Управління</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in records %}
+                        <tr>
+                            <td>#{{ rec.id }}</td>
+                            <td>
+                                <div class="fw-bold">{{ rec.author.full_name }}</div>
+                                <small class="text-muted">{{ rec.author.group_code }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ rec.title }}</strong>
+                                {% if rec.image_file and rec.image_file != 'default_record.jpg' %}
+                                    <a href="{{ url_for('static', filename='proofs/' + rec.image_file) }}" target="_blank" class="text-info ms-1">
+                                        <i class="bi bi-image"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ rec.category.name }}</span></td>
+                            <td>
+                                {% if rec.status == 'approved' %}
+                                    <span class="badge bg-success">Схвалено</span>
+                                {% elif rec.status == 'rejected' %}
+                                    <span class="badge bg-danger">Відхилено</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Очікує</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ rec.created_at.strftime('%d.%m.%Y') }}</td>
+                            
+                            <td class="text-end">
+                                <a href="{{ url_for('main.edit_record', record_id=rec.id) }}" class="btn btn-sm btn-outline-warning" title="Редагувати">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+
+                                <form action="{{ url_for('main.delete_record', record_id=rec.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Видалити цей запис назавжди?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Видалити">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if not records %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-folder-x fs-1"></i>
+                    <p class="mt-2">Нічого не знайдено.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

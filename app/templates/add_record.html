@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Додати нове досягнення</h4>
+            </div>
+            <div class="card-body p-4">
+                
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label fw-bold") }}
+                        {{ form.title(class="form-control", placeholder="Назва конкурсу, олімпіади...") }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.category.label(class="form-label fw-bold") }}
+                            {{ form.category(class="form-select") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.event_date.label(class="form-label fw-bold") }}
+                            {{ form.event_date(class="form-control", type="date") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.result_value.label(class="form-label fw-bold") }}
+                        {{ form.result_value(class="form-control", placeholder="1 місце / Грамота / Учасник") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label fw-bold") }}
+                        {{ form.description(class="form-control", rows="3", placeholder="Детальний опис події...") }}
+                    </div>
+
+                    <div class="mb-4 p-3 bg-light rounded border">
+                        <label class="form-label fw-bold"><i class="bi bi-image"></i> Фото-доказ</label>
+                        {{ form.evidence(class="form-control") }}
+                        <div class="form-text text-muted">Завантажте фото грамоти, диплома або фото з місця події (jpg, png).</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
