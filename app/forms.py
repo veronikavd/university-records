@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, DateField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
-from flask_wtf.file import FileField, FileAllowed
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -22,8 +22,9 @@ class RecordForm(FlaskForm):
     title = StringField('Назва події', validators=[DataRequired()])
     category = SelectField('Категорія', coerce=int)
     
-    evidence = FileField('Фото-доказ', validators=[
-        FileAllowed(['jpg', 'png', 'jpeg'], 'Лише зображення (jpg, png)!')
+    evidence = FileField('Доказ (фото або PDF)', validators=[
+        FileRequired(), 
+        FileAllowed(['jpg', 'png', 'jpeg', 'pdf'], 'Лише зображення або PDF!')
     ])
     
     event_date = DateField('Дата події', format='%Y-%m-%d', validators=[DataRequired()])
@@ -38,14 +39,14 @@ class AdminRecordForm(FlaskForm):
     title = StringField('Назва події', validators=[DataRequired()])
     category = SelectField('Категорія', coerce=int)
     
-    evidence = FileField('Фото-доказ', validators=[
-        FileAllowed(['jpg', 'png', 'jpeg'], 'Тільки картинки!')
+    evidence = FileField('Доказ (фото або PDF)', validators=[
+        FileAllowed(['jpg', 'png', 'jpeg', 'pdf'], 'Лише зображення або PDF!')
     ])
     
     event_date = DateField('Дата події', format='%Y-%m-%d', validators=[DataRequired()])
     result_value = StringField('Результат', validators=[DataRequired()])
     description = TextAreaField('Опис', validators=[DataRequired()])
-    submit = SubmitField('Створити запис')
+    submit = SubmitField('Зберегти запис')
 
 # --- АДМІН: РЕДАГУВАННЯ КОРИСТУВАЧА ---
 class EditUserForm(FlaskForm):
@@ -70,3 +71,8 @@ class ChangePasswordForm(FlaskForm):
     new_password = PasswordField('Новий пароль', validators=[DataRequired(), Length(min=6)])
     confirm_new_password = PasswordField('Підтвердження', validators=[DataRequired(), EqualTo('new_password')])
     submit_pass = SubmitField('🔐 Змінити пароль')
+
+# --- АДМІН: ДОДАВАННЯ КАТЕГОРІЇ ---
+class CategoryForm(FlaskForm):
+    name = StringField('Назва категорії', validators=[DataRequired()])
+    submit = SubmitField('Додати категорію')

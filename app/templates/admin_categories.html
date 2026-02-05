@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-secondary mb-4">
+        <i class="bi bi-arrow-left"></i> Назад до панелі
+    </a>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-plus-lg"></i> Нова категорія
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control", placeholder="Напр. Кіберспорт") }}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="bi bi-list-ul"></i> Існуючі категорії
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Назва</th>
+                                <th>Записів</th>
+                                <th class="text-end">Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in categories %}
+                            <tr>
+                                <td>{{ cat.id }}</td>
+                                <td><strong>{{ cat.name }}</strong></td>
+                                
+                                <td>
+                                    {% if cat.records.count() > 0 %}
+                                        <span class="badge bg-info text-dark">{{ cat.records.count() }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">0</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end">
+                                    {% if cat.records.count() > 0 %}
+                                        <button class="btn btn-sm btn-secondary" disabled title="Не можна видалити: є записи">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    {% else %}
+                                        <a href="{{ url_for('main.delete_category', cat_id=cat.id) }}" 
+                                           class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Видалити категорію {{ cat.name }}?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

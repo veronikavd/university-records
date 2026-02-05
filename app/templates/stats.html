@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">📊 Статистика Університету</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mx-auto">
+            <div class="card text-white bg-primary mb-3 text-center shadow">
+                <div class="card-header">Всього схвалених рекордів</div>
+                <div class="card-body">
+                    <h1 class="card-title display-4">{{ total_records|default(0) }}</h1>
+                    <p class="card-text">досягнень наших студентів</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold">
+                    <i class="bi bi-graph-up-arrow text-success"></i> Динаміка активності
+                </div>
+                <div class="card-body">
+                    <canvas id="timelineChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-8 col-lg-6"> 
+            <div class="card shadow-sm mb-4">
+                <div class="card-header fw-bold bg-white">🏆 Розподіл по категоріях</div>
+                <div class="card-body">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-md-6" id="students">
+            <div class="card shadow-sm mb-4 h-100">
+                <div class="card-header bg-white fw-bold border-bottom">
+                    <i class="bi bi-people-fill text-warning"></i> Топ-5 Найактивніших
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Студент</th>
+                                <th>Група</th>
+                                <th class="text-end">🏆</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in top_students %}
+                            <tr>
+                                <td class="ps-3">{{ loop.index }}</td>
+                                <td><strong>{{ student.full_name }}</strong></td>
+                                <td class="text-muted small">{{ student.group_code }}</td>
+                                <td class="text-end fw-bold text-primary pe-3">{{ student.total }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center p-3 text-muted">Даних ще немає...</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6" id="groups">
+            <div class="card shadow-sm mb-4 h-100">
+                <div class="card-header bg-white fw-bold border-bottom">
+                    <i class="bi bi-collection-fill text-info"></i> Рейтинг Груп
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Група</th>
+                                <th class="text-end pe-3">Рекордів</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for group in top_groups %}
+                            <tr>
+                                <td class="ps-3">{{ loop.index }}</td>
+                                <td><strong>{{ group.group_code }}</strong></td>
+                                <td class="text-end fw-bold text-primary pe-3">{{ group.total }} 🏆</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center p-3 text-muted">Даних ще немає...</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const catLabels = {{ cat_labels | tojson }};
+    const catValues = {{ cat_values | tojson }};
+
+    const ctx = document.getElementById('categoriesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut', 
+        data: {
+            labels: catLabels,
+            datasets: [{
+                label: 'Кількість рекордів',
+                data: catValues,
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    const timeLabels = {{ timeline_labels | tojson }};
+    const timeValues = {{ timeline_values | tojson }};
+
+    if (timeLabels && timeLabels.length > 0) {
+        const ctxTime = document.getElementById('timelineChart').getContext('2d');
+        new Chart(ctxTime, {
+            type: 'line', 
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'Активність подання заявок',
+                    data: timeValues,
+                    borderColor: '#198754', 
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)', 
+                    tension: 0.3, 
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, 
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 } 
+                    }
+                },
+                plugins: {
+                    legend: { display: false }, 
+                    title: {
+                        display: true,
+                        text: 'Кількість рекордів по місяцях'
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('timelineChart').parentElement.innerHTML = '<p class="text-center text-muted my-5">Даних для графіка поки недостатньо</p>';
+    }
+</script>
+{% endblock %}

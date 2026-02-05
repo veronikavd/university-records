@@ -13,13 +13,13 @@ login_manager.login_message = "Будь ласка, увійдіть у сист
 
 def create_app(config_class=Config):
     app = Flask(__name__)
+    app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
     app.config.from_object(config_class)
 
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
 
-    # --- РЕЄСТРАЦІЯ BLUEPRINT (МАРШРУТІВ) ---
     from app.routes import bp as main_bp
     app.register_blueprint(main_bp)
 

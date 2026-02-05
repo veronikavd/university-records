@@ -4,17 +4,20 @@
 <div class="container">
     <h2 class="mb-4"><i class="bi bi-shield-lock"></i> Панель Адміністратора</h2>
 
-     <a href="{{ url_for('main.admin_add_record') }}" class="btn btn-primary">
+    <a href="{{ url_for('main.admin_add_record') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> Додати рекорд вручну
     </a>
-    <a href="{{ url_for('main.admin_users') }}" class="btn btn-outline-dark me-2">
+    
+    <a href="{{ url_for('main.admin_users') }}" class="btn btn-outline-dark">
         <i class="bi bi-people"></i> Користувачі
     </a>
 
+    <a href="{{ url_for('main.admin_categories') }}" class="btn btn-outline-dark me-2">
+        <i class="bi bi-tags"></i> Категорії
+    </a>
     <a href="{{ url_for('main.admin_records') }}" class="btn btn-outline-primary">
         <i class="bi bi-collection"></i> Всі рекорди
     </a>
-    
     <div class="card shadow-sm border-primary mb-5 mt-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Очікують підтвердження</h5>
@@ -28,7 +31,8 @@
                         <th>Студент</th>
                         <th>Подія / Категорія</th>
                         <th>Результат</th>
-                        <th>Доказ</th> <th>Дата</th>
+                        <th>Доказ</th> 
+                        <th>Дата</th>
                         <th class="text-end">Дії</th>
                     </tr>
                 </thead>
@@ -47,11 +51,22 @@
                         
                         <td>
                             {% if rec.image_file and rec.image_file != 'default_record.jpg' %}
-                                <a href="{{ url_for('static', filename='proofs/' + rec.image_file) }}" 
-                                   target="_blank" 
-                                   class="btn btn-sm btn-outline-info text-nowrap">
-                                    <i class="bi bi-image"></i> Фото
-                                </a>
+                                
+                                {% if rec.image_file.endswith('.pdf') %}
+                                    <a href="{{ url_for('static', filename='proofs/' + rec.image_file) }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-danger text-nowrap">
+                                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('static', filename='proofs/' + rec.image_file) }}" target="_blank">
+                                        <img src="{{ url_for('static', filename='proofs/' + rec.image_file) }}" 
+                                             alt="Доказ" 
+                                             class="img-thumbnail" 
+                                             style="height: 50px; width: auto;">
+                                    </a>
+                                {% endif %}
+
                             {% else %}
                                 <span class="text-muted small">Немає</span>
                             {% endif %}

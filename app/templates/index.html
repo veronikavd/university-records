@@ -64,6 +64,7 @@
             {% for record in records %}
             <div class="card shadow-sm mb-4 border-0 hover-effect">
                 <div class="card-body p-4">
+                    
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
@@ -84,19 +85,39 @@
                         </small>
                     </div>
 
-                    <h4 class="card-title text-dark fw-bold">{{ record.title }}</h4>
+                    <h4 class="card-title fw-bold">
+                        <a href="{{ url_for('main.record_detail', record_id=record.id) }}" class="text-dark text-decoration-none hover-underline">
+                            {{ record.title }}
+                        </a>
+                    </h4>
+                    
                     <p class="card-text text-secondary">{{ record.description }}</p>
 
                     {% if record.image_file and record.image_file != 'default_record.jpg' %}
                     <div class="mb-3">
-                        <a href="{{ url_for('static', filename='proofs/' + record.image_file) }}" target="_blank">
-                            <img src="{{ url_for('static', filename='proofs/' + record.image_file) }}" 
-                                 class="img-fluid rounded border shadow-sm" 
-                                 alt="Фото доказ"
-                                 style="max-height: 400px; width: 100%; object-fit: cover;">
-                        </a>
+                        
+                        {# Якщо PDF - показуємо гарний блок замість битої картинки #}
+                        {% if record.image_file.endswith('.pdf') %}
+                            <a href="{{ url_for('main.record_detail', record_id=record.id) }}" class="text-decoration-none">
+                                <div class="p-4 bg-light border rounded text-center text-danger hover-bg-light">
+                                    <i class="bi bi-file-earmark-pdf" style="font-size: 3rem;"></i>
+                                    <div class="mt-2 fw-bold text-dark">Переглянути документ PDF</div>
+                                </div>
+                            </a>
+                        
+                        {# Якщо Картинка - показуємо картинку #}
+                        {% else %}
+                            <a href="{{ url_for('main.record_detail', record_id=record.id) }}">
+                                <img src="{{ url_for('static', filename='proofs/' + record.image_file) }}" 
+                                     class="img-fluid rounded border shadow-sm" 
+                                     alt="Фото доказ"
+                                     style="max-height: 400px; width: 100%; object-fit: cover;">
+                            </a>
+                        {% endif %}
+
                     </div>
                     {% endif %}
+                    
                     <div class="alert alert-light border d-flex align-items-center p-2 mb-3">
                         <i class="bi bi-award-fill text-warning fs-3 me-3"></i>
                         <div>
@@ -110,6 +131,9 @@
                             <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2">
                                 <i class="bi bi-tag-fill"></i> {{ record.category.name if record.category else 'Загальне' }}
                             </span>
+                        </a>
+                        <a href="{{ url_for('main.record_detail', record_id=record.id) }}" class="btn btn-sm btn-outline-primary float-end">
+                            Детальніше <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -140,11 +164,13 @@
                         <div><i class="bi bi-graph-up me-2 text-success"></i> Статистика</div>
                         <i class="bi bi-chevron-right text-muted small"></i>
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    
+                    <a href="{{ url_for('main.stats') }}#students" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <div><i class="bi bi-mortarboard-fill me-2 text-warning"></i> Топ студентів</div>
                         <i class="bi bi-chevron-right text-muted small"></i>
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    
+                    <a href="{{ url_for('main.stats') }}#groups" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <div><i class="bi bi-people-fill me-2 text-info"></i> Рейтинг груп</div>
                         <i class="bi bi-chevron-right text-muted small"></i>
                     </a>
@@ -180,6 +206,7 @@
     .hover-effect { transition: transform 0.2s; }
     .hover-effect:hover { transform: translateY(-5px); }
     .hover-underline:hover { text-decoration: underline !important; }
+    .hover-bg-light:hover { background-color: #e2e6ea !important; }
 </style>
 
 {% endblock %}

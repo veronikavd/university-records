@@ -49,6 +49,22 @@ class User(UserMixin, db.Model):
     achievements = db.relationship('Achievement', backref='owner', lazy='dynamic')
     teams_captain = db.relationship('Team', backref='captain', lazy='dynamic')
 
+    @property
+    def badge(self):
+        count = 0
+        for r in self.records:
+            if r.status == 'approved':
+                count += 1
+        
+        if count >= 10:
+            return {'name': 'Гордість факультету', 'icon': 'bi-trophy-fill', 'color': 'warning'} # 🥇 Золотий
+        elif count >= 5:
+            return {'name': 'Активіст', 'icon': 'bi-star-fill', 'color': 'danger'} # 🥈 Червоний
+        elif count >= 1:
+            return {'name': 'Дебют', 'icon': 'bi-award-fill', 'color': 'primary'} # 🥉 Синій
+        
+        return None 
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 

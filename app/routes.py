@@ -1,13 +1,17 @@
 import os
 import secrets
 from flask import current_app
-from flask import Blueprint, render_template, flash, redirect, url_for, request
+from flask import Blueprint, render_template, flash, redirect, url_for, request, abort, send_file
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.models import User, Record, Category
-from sqlalchemy import or_
+from sqlalchemy import or_, func
+import qrcode
+from io import BytesIO
+
 from app.forms import (LoginForm, RegistrationForm, RecordForm, AdminRecordForm, 
-                       EditUserForm, UpdateProfileForm, ChangePasswordForm) 
+                       EditUserForm, UpdateProfileForm, ChangePasswordForm, CategoryForm) 
+
 bp = Blueprint('main', __name__)
 
 def save_picture(form_picture):
@@ -21,8 +25,6 @@ def save_picture(form_picture):
     
     return picture_fn
 
-# --- ГОЛОВНА СТОРІНКА ---
-# --- ГОЛОВНА СТОРІНКА (СТРІЧКА НОВИН) ---
 # --- ГОЛОВНА СТОРІНКА (СТРІЧКА + ПОШУК) ---
 @bp.route('/')
 @bp.route('/index')
@@ -264,10 +266,63 @@ def delete_user(user_id):
     flash(f'Користувача {user.username} видалено.')
     return redirect(url_for('main.admin_users'))
 
-# --- СТОРІНКА СТАТИСТИКИ (Заглушка) ---
+# --- СТОРІНКА СТАТИСТИКИ ---
 @bp.route('/stats')
 def stats():
-    return render_template('base.html') 
+    # 1. Загальна кількість схвалених рекордів
+    total_records = Record.query.filter_by(status='approved').count()
+
+    # 2. Топ-5 активних студентів
+    top_students = db.session.query(
+        User.full_name,
+        User.group_code,
+        func.count(Record.id).label('total')
+    ).join(Record).filter(Record.status == 'approved')\
+     .group_by(User.id)\
+     .order_by(func.count(Record.id).desc())\
+     .limit(5).all()
+
+    # 3. Топ-5 активних ГРУП
+    top_groups = db.session.query(
+        User.group_code,
+        func.count(Record.id).label('total')
+    ).join(Record).filter(Record.status == 'approved')\
+     .group_by(User.group_code)\
+     .order_by(func.count(Record.id).desc())\
+     .limit(5).all()
+
+    # 4. Дані для графіка по категоріях (Пончик)
+    categories_data = db.session.query(
+        Category.name,
+        func.count(Record.id).label('total')
+    ).join(Record).filter(Record.status == 'approved')\
+     .group_by(Category.id).all()
+
+    cat_labels = [row[0] for row in categories_data]
+    cat_values = [row[1] for row in categories_data]
+
+    from collections import defaultdict
+    from datetime import datetime
+
+    all_approved = Record.query.filter_by(status='approved').order_by(Record.event_date).all()
+    
+    dates_dict = defaultdict(int)
+    
+    for r in all_approved:
+        month_key = r.event_date.strftime('%m.%Y')
+        dates_dict[month_key] += 1
+    
+    timeline_labels = list(dates_dict.keys())   # Осі Х (дати)
+    timeline_values = list(dates_dict.values()) # Осі Y (кількість)
+
+    return render_template('stats.html', 
+                           total_records=total_records, 
+                           top_students=top_students,
+                           top_groups=top_groups,
+                           cat_labels=cat_labels,
+                           cat_values=cat_values,
+                           timeline_labels=timeline_labels,
+                           timeline_values=timeline_values)
 
 # --- ПУБЛІЧНИЙ ПРОФІЛЬ КОРИСТУВАЧА ---
 @bp.route('/user/<username>')
@@ -300,11 +355,9 @@ def settings():
 
     # ОБРОБКА ФОРМИ ПАРОЛЯ
     if form_pass.submit_pass.data and form_pass.validate():
-        # Перевіряємо, чи правильний старий пароль
         if not current_user.check_password(form_pass.current_password.data):
             flash('Помилка: Невірний поточний пароль.')
         else:
-            # Якщо все ок - міняємо пароль
             current_user.set_password(form_pass.new_password.data)
             db.session.commit()
             flash('Пароль успішно змінено!')
@@ -318,6 +371,13 @@ def settings():
         form_info.group_code.data = current_user.group_code
 
     return render_template('settings.html', form_info=form_info, form_pass=form_pass)
+
+# --- ДЕТАЛЬНИЙ ПЕРЕГЛЯД РЕКОРДУ ---
+@bp.route('/record/<int:record_id>')
+def record_detail(record_id):
+    # Шукаємо запис по ID, якщо немає - видасть помилку 404
+    record = Record.query.get_or_404(record_id)
+    return render_template('record_detail.html', record=record)
 
 # --- ВИДАЛЕННЯ РЕКОРДУ (Тільки Адмін) ---
 @bp.route('/admin/delete_record/<int:record_id>', methods=['POST'])
@@ -399,3 +459,62 @@ def admin_records():
     records = query.order_by(Record.created_at.desc()).all()
     
     return render_template('admin_records.html', records=records, search_query=search_query)
+
+# --- АДМІН: КЕРУВАННЯ КАТЕГОРІЯМИ ---
+@bp.route('/admin/categories', methods=['GET', 'POST'])
+@login_required
+def admin_categories():
+    if current_user.role != 'admin':
+        return redirect(url_for('main.index'))
+    
+    form = CategoryForm()
+    
+    # Якщо відправили форму (Додавання нової)
+    if form.validate_on_submit():
+        category = Category(name=form.name.data)
+        db.session.add(category)
+        db.session.commit()
+        flash(f'Категорію "{category.name}" успішно створено!', 'success')
+        return redirect(url_for('main.admin_categories'))
+    
+    # Отримуємо всі категорії, щоб показати список
+    categories = Category.query.all()
+    
+    return render_template('admin_categories.html', form=form, categories=categories)
+
+# --- АДМІН: ВИДАЛЕННЯ КАТЕГОРІЇ ---
+@bp.route('/admin/category/<int:cat_id>/delete')
+@login_required
+def delete_category(cat_id):
+    if current_user.role != 'admin':
+        abort(403)
+        
+    category = Category.query.get_or_404(cat_id)
+    
+    # Забороняємо видаляти категорію, якщо в ній є записи
+    if category.records:
+        flash(f'Неможливо видалити категорію "{category.name}", бо в ній є {len(category.records)} записів!', 'danger')
+    else:
+        db.session.delete(category)
+        db.session.commit()
+        flash(f'Категорію "{category.name}" видалено.', 'info')
+        
+    return redirect(url_for('main.admin_categories'))
+
+# 👇 НОВА ФУНКЦІЯ: ГЕНЕРАЦІЯ QR-КОДУ 👇
+@bp.route('/record/<int:record_id>/qr')
+def record_qr(record_id):
+    # 1. Формуємо повне посилання на сторінку (наприклад, http://site.com/record/5)
+    # _external=True означає, що посилання буде з "http://...", а не просто "/record/..."
+    link = url_for('main.record_detail', record_id=record_id, _external=True)
+    
+    # 2. Створюємо QR-код
+    qr = qrcode.make(link)
+    
+    # 3. Зберігаємо картинку в оперативну пам'ять (не на диск, щоб не смітити)
+    buf = BytesIO()
+    qr.save(buf)
+    buf.seek(0)
+    
+    # 4. Віддаємо як файл картинки
+    return send_file(buf, mimetype='image/png')

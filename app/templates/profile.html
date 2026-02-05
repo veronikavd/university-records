@@ -14,7 +14,16 @@
                     </div>
                     
                     <div>
-                        <h2 class="fw-bold mb-0">{{ current_user.full_name }}</h2>
+                        <h2 class="fw-bold mb-0">
+                            {{ current_user.full_name }}
+                            {% if current_user.badge %}
+                                <span class="badge bg-{{ current_user.badge.color }} fs-6 align-middle ms-2" 
+                                      title="Статус: {{ current_user.badge.name }}"
+                                      data-bs-toggle="tooltip">
+                                    <i class="bi {{ current_user.badge.icon }}"></i> {{ current_user.badge.name }}
+                                </span>
+                            {% endif %}
+                        </h2>
                         <p class="text-muted mb-0">
                             <i class="bi bi-person-badge"></i> Група: <strong>{{ current_user.group_code }}</strong>
                             <span class="mx-2">•</span>
@@ -55,7 +64,10 @@
             <div class="list-group-item list-group-item-action p-3 border-0 border-bottom">
                 <div class="d-flex w-100 justify-content-between align-items-center">
                     <div class="mb-1">
-                        <h5 class="mb-1 fw-bold text-dark">{{ record.title }}</h5>
+                        <a href="{{ url_for('main.record_detail', record_id=record.id) }}" class="text-decoration-none text-dark">
+                            <h5 class="mb-1 fw-bold">{{ record.title }}</h5>
+                        </a>
+
                         <small class="text-muted">
                             <i class="bi bi-calendar-event"></i> {{ record.event_date.strftime('%d.%m.%Y') }} 
                             &nbsp;|&nbsp; 
@@ -78,13 +90,26 @@
 
                 {% if record.image_file and record.image_file != 'default_record.jpg' %}
                 <div class="mt-2 mb-2">
-                    <a href="{{ url_for('static', filename='proofs/' + record.image_file) }}" target="_blank" class="text-decoration-none">
-                        <img src="{{ url_for('static', filename='proofs/' + record.image_file) }}" 
-                             class="rounded border" 
-                             alt="Фото доказ"
-                             style="max-height: 150px; object-fit: cover;">
-                        <small class="d-block text-muted mt-1"><i class="bi bi-search"></i> Натисніть для збільшення</small>
-                    </a>
+                    
+                    {# 1. ЯКЩО ЦЕ PDF #}
+                    {% if record.image_file.endswith('.pdf') %}
+                        <a href="{{ url_for('static', filename='proofs/' + record.image_file) }}" 
+                           target="_blank" 
+                           class="btn btn-outline-danger">
+                            <i class="bi bi-file-earmark-pdf"></i> Відкрити PDF документ
+                        </a>
+                    
+                    {# 2. ЯКЩО ЦЕ КАРТИНКА #}
+                    {% else %}
+                        <a href="{{ url_for('static', filename='proofs/' + record.image_file) }}" target="_blank" class="text-decoration-none">
+                            <img src="{{ url_for('static', filename='proofs/' + record.image_file) }}" 
+                                 class="rounded border" 
+                                 alt="Фото доказ"
+                                 style="max-height: 150px; object-fit: cover;">
+                            <small class="d-block text-muted mt-1"><i class="bi bi-search"></i> Натисніть для збільшення</small>
+                        </a>
+                    {% endif %}
+
                 </div>
                 {% endif %}
                 <div class="mt-2 fw-bold text-primary">
