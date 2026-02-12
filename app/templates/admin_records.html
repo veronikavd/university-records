@@ -30,7 +30,7 @@
     <div class="card shadow border-0">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover3 align-middle mb-0 table-records">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
@@ -58,14 +58,14 @@
                                     </a>
                                 {% endif %}
                             </td>
-                            <td><span class="badge bg-light text-dark border">{{ rec.category.name }}</span></td>
+                            <td><span class="badge2 bg-light text-dark border">{{ rec.category.name }}</span></td>
                             <td>
                                 {% if rec.status == 'approved' %}
-                                    <span class="badge bg-success">Схвалено</span>
+                                    <span class="badge2 bg-success">Схвалено</span>
                                 {% elif rec.status == 'rejected' %}
-                                    <span class="badge bg-danger">Відхилено</span>
+                                    <span class="badge2 bg-danger">Відхилено</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">Очікує</span>
+                                    <span class="badge2 bg-warning text-dark">Очікує</span>
                                 {% endif %}
                             </td>
                             <td>{{ rec.created_at.strftime('%d.%m.%Y') }}</td>
