@@ -483,22 +483,26 @@ def admin_categories():
     return render_template('admin_categories.html', form=form, categories=categories)
 
 # --- АДМІН: ВИДАЛЕННЯ КАТЕГОРІЇ ---
-@bp.route('/admin/category/<int:cat_id>/delete')
+@bp.route('/admin/category/<int:category_id>/delete', methods=['POST'])
 @login_required
-def delete_category(cat_id):
+def delete_category(category_id):
     if current_user.role != 'admin':
         abort(403)
         
-    category = Category.query.get_or_404(cat_id)
+    category = Category.query.get_or_404(category_id)
     
-    # Забороняємо видаляти категорію, якщо в ній є записи
-    if category.records:
-        flash(f'Неможливо видалити категорію "{category.name}", бо в ній є {len(category.records)} записів!', 'danger')
-    else:
-        db.session.delete(category)
-        db.session.commit()
-        flash(f'Категорію "{category.name}" видалено.', 'info')
-        
+    # 👇 ВИПРАВЛЕННЯ ТУТ 👇
+    # Використовуємо .count() замість len()
+    # Також переконайся, що перевірка саме > 0, щоб дозволити видалення порожніх категорій
+    record_count = category.records.count()
+
+    if record_count > 0:
+        flash(f'Неможливо видалити категорію "{category.name}", бо в ній є {record_count} записів!', 'danger')
+        return redirect(url_for('main.admin_categories'))
+
+    db.session.delete(category)
+    db.session.commit()
+    flash('Категорію успішно видалено!', 'success')
     return redirect(url_for('main.admin_categories'))
 
 # 👇 НОВА ФУНКЦІЯ: ГЕНЕРАЦІЯ QR-КОДУ 👇
